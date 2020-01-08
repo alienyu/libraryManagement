@@ -1,0 +1,5 @@
+{
+    "pageList": ["overview", "bizA", "bizB", "bizC"],
+    "vendorConf": [],
+    "antdIconList": ["Yuque", "Alibaba", "ExclamationCircle"]
+}
