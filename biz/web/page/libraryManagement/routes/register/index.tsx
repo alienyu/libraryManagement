@@ -19,7 +19,7 @@ interface NormalRegFormProps extends FormComponentProps {
 class NormalRegForm extends React.Component<NormalRegFormProps, {}> {
     handleSubmit = (e: any) => {
         e.preventDefault();
-        const { userStore } = this.props;
+        const { userStore, history } = this.props;
         this.props.form.validateFields((err: any, values: any) => {
             if (!err) {
                 webAjax({
@@ -27,6 +27,7 @@ class NormalRegForm extends React.Component<NormalRegFormProps, {}> {
                     data: values,
                     callback(data: any) {
                         userStore.changeUserInfo(Object.assign(data, values));
+                        history.push("/");
                     }
                 })
             }

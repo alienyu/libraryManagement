@@ -2,5 +2,10 @@
     "userID": "yuyongjian",
     "userName": "於永健",
     "pwd": "111111",
-    "orderBookList": []
+    "type": "super"
+}, {
+    "userID": "test",
+    "userName": "测试账户",
+    "pwd": "111111",
+    "type": "common"
 }]

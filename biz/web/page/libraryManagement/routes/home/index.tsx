@@ -1,27 +1,41 @@
 import * as React from "react";
-import { Row, Col, Button } from 'antd';
+import { Row, Col, Button, Table } from 'antd';
+import { observer, inject } from 'mobx-react';
 import { WrapperHomeCmp } from './styled';
 
-declare const intl: any;
-
 type props = {
-    history: any
+    history: any,
+    userStore?: any
 }
 
+@inject("userStore")
+@observer
 export default class Home extends React.Component<props> {
     constructor(props: props) {
         super(props);
     }
 
+    gotoBookList = () => {
+        this.props.history.push("/bookList");
+    }
+
+    gotoBookMgr = () => {
+        this.props.history.push("/bookMgr");
+    }
+
     render() {
+        const { userInfo } = this.props.userStore;
         return (
             <WrapperHomeCmp>
-                <Row type="flex" justify="center" align="middle" className="pageFrame">
+                <Row type="flex" justify="center" className="pageFrame">
                     <Col span={18}>
-                        <Row>{intl.get('home.content')}</Row>
-                        <Row>这个例子中根路由"/"有自己的独立组件layout，因此顶层路由中必须区分是否包含此layout，包含Layout的路由需在layout组件中处理。并且"/"路径对应两个路由组件Layout和首页。</Row>
+                        <Row className="ops" type="flex" justify="space-around">
+                            <Button type="primary" onClick={this.gotoBookList}>查询当前书籍情况</Button>
+                            {userInfo.type == "super" ?
+                                <Button type="primary" onClick={this.gotoBookMgr}>管理书籍</Button>
+                                : null}
+                        </Row>
                     </Col>
-                    <Button onClick={() => this.props.history.push("/reg")}>Go To Reg</Button>
                 </Row>
             </WrapperHomeCmp>
         );
