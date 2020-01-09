@@ -101,13 +101,14 @@ const dealWithGetOrderRecords = (req, res) => {
         let bookID = item.bookID;
         let bookName = bookData.find(item => item.bookID == bookID).bookName;
         let { orderDate, returnDate } = item;
-        resData.push({
+        let len = resData.length;
+        resData[len] = {
             orderID,
             bookID,
             bookName,
             orderDate,
             returnDate
-        })
+        };
     });
     res.send(Object.assign({}, successRes, {data:resData}));
 };
@@ -134,13 +135,89 @@ const dealWithReturnBook = (req, res) => {
     res.send(successRes);
 };
 
+const dealWithGetBookList = (req, res) => {
+    let filePath = "./data/book.json";
+    let oriData = readFile(filePath);
+    let resData = oriData.filter(item => item.status == 1);
+    res.send(Object.assign({}, successRes, {data: resData}));
+};
+
+const dealWithOrderBook = (req, res) => {
+    let { userID, bookID} = req.body;
+    let filePath = "./data/book.json";
+    let orderPath = "./data/orderRecords.json"
+    let oriData = readFile(filePath);
+    let recordsData = readFile(orderPath);
+    oriData.map(item => {
+        if(item.bookID == bookID) {
+            item.orderStatus = 1;
+        }
+    });
+    writeFile({filePath, content: oriData});
+    let len = recordsData.length;
+    recordsData[len] = {
+        orderID: ++recordsData.length,
+        bookID,
+        userID,
+        orderDate: moment().format('YYYY-MM-DD HH:mm:ss')
+    };
+    writeFile({filePath: orderPath, content: recordsData});
+    res.send(successRes);
+};
+
+const dealWithSubmitBook = (req, res) => {
+    let { bookName, author, publish, bookID } = req.body;
+    let filePath = "./data/book.json";
+    let oriData = readFile(filePath);
+    if(!bookID) {
+        let len = oriData.length;
+        oriData[len] = {
+            bookID: ++oriData.length,
+            bookName,
+            author,
+            publish,
+            orderStatus: 0,
+            status: 1
+        };
+    } else {
+        oriData.map(item => {
+            if(item.bookID == bookID) {
+                item.bookName = bookName;
+                item.author = author;
+                item.publish = publish;
+            }
+        })
+    }
+    writeFile({filePath, content: oriData});
+    res.send(successRes);
+};
+
+const dealWithDeleteBook = (req, res) => {
+    let { bookID } = req.body
+    let filePath = "./data/book.json";
+    let oriData = readFile(filePath);
+    oriData.map(item => {
+        if(item.bookID == bookID) {
+            item.status = 0;
+        }
+    });
+    
+    writeFile({filePath, content: oriData});
+    res.send(successRes);
+};
 const proxy = {
     "POST /web/libraryManagement/register": dealWithRegister,
     "POST /web/libraryManagement/login": dealWithLogin,
     "POST /web/libraryManagement/changeInfo": dealWithChangeInfo,
     "POST /web/libraryManagement/changePwd": dealWithChangePwd,
     "POST /web/libraryManagement/getOrderRecords": dealWithGetOrderRecords,
-    "POST /web/libraryManagement/returnBook": dealWithReturnBook
+    "POST /web/libraryManagement/returnBook": dealWithReturnBook,
+    "POST /web/libraryManagement/getBookList": dealWithGetBookList,
+    "POST /web/libraryManagement/orderBook": dealWithOrderBook,
+    "POST /web/libraryManagement/submitBook": dealWithSubmitBook,
+    "POST /web/libraryManagement/deleteBook": dealWithDeleteBook
+
+
 }
 
 module.exports = proxy;

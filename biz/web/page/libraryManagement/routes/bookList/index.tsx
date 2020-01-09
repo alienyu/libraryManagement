@@ -8,7 +8,9 @@ declare const webAjax: any;
 
 interface FormProps extends FormComponentProps {
     history?: any,
-    formData: any
+    formData: any,
+    getBookList: any,
+    handleCancel: any
 }
 
 type props = {
@@ -25,21 +27,16 @@ type state = {
 
 class BookForm extends React.Component<FormProps, {}> {
     handleSubmit = (e) => {
+        let that = this;
         e.preventDefault();
         this.props.form.validateFields((err: any, values: any) => {
             if (!err) {
                 webAjax({
                     url: "/submitBook",
-                    data: values,
-                    callback(data) {
-                        if(!values.bookID) {
-                            this.state.dataSource.push(values);
-                        } else {
-                            this.state.dataSource.map(item => {
-                                if(item.bookID == values.bookID) {item = values;}
-                            }) 
-                        }
-                        this.setState({dataSource: this.state.dataSource});
+                    data: Object.assign({}, values, {bookID: this.props.formData.bookID}),
+                    callback() {
+                        that.props.getBookList();
+                        that.props.handleCancel();
                     }
                 })
             }
@@ -80,18 +77,25 @@ export default class BookList extends React.Component<props, state> {
     constructor(props: props) {
         super(props);
         this.state = {
-            dataSource: require("../../mock/data/book.json"),
+            dataSource: [],
             visible: false,
             formData: {}
         }
     }
 
-    componentWillMount() {
+    componentDidMount() {
+        this.getBookList();
+    }
+
+    getBookList = () => {
+        let that = this;
         webAjax({
-            method: "get",
+            method: "post",
             url: "/getBookList",
             callback(data) {
-                this.setState({ dataSources: data });
+                if(data.errNo == 200) {
+                    that.setState({ dataSource: data.data });
+                }
             }
         })
     }
@@ -105,13 +109,18 @@ export default class BookList extends React.Component<props, state> {
     }
 
     order = (bookID) => {
+        let that = this;
         webAjax({
             method: "post",
             url: "/orderBook",
-            data: {bookID},
+            data: {
+                userID: this.props.userStore.userInfo.userID,
+                bookID
+            },
             callback(data) {
-                this.state.dateSource.find(item => item.bookID == bookID).orderStatus = 1;
-                this.setState({dateSource: this.state.dateSource});
+                if(data.errNo == 200) {
+                    that.getBookList();
+                }
             }
         })
     }
@@ -132,14 +141,13 @@ export default class BookList extends React.Component<props, state> {
     }
 
     delete = (bookID) => {
+        let that = this;
         webAjax({
             method: "post",
             url: "/deleteBook",
             data: {bookID},
             callback(data) {
-                this.state.dateSource.find(item => item.bookID == bookID).status = 0;
-                this.setState({dateSource: this.state.dateSource});
-                this.setState({ dataSources: this.state.dataSource });
+                that.getBookList();
             }
         })
     }
@@ -171,7 +179,7 @@ export default class BookList extends React.Component<props, state> {
             key: "ops",
             render: (text, record) => (
                 <span>
-                    <Button style={{ marginRight: 10 }} type="primary" disabled={record.status} onClick={this.order.bind(this, record.bookID)}>借阅</Button>
+                    <Button style={{ marginRight: 10 }} type="primary" disabled={record.orderStatus} onClick={this.order.bind(this, record.bookID)}>借阅</Button>
                     {userInfo.type == "super" ? <Button style={{ marginRight: 10 }} type="primary" onClick={this.modify.bind(this, record.bookID)}>修改</Button> : null}
                     {userInfo.type == "super" ?
                         //@ts-ignore
@@ -182,7 +190,7 @@ export default class BookList extends React.Component<props, state> {
                             okText="Yes"
                             canelText="No"
                         >
-                            <Button style={{ marginRight: 10 }} type="danger">删除</Button>
+                            <Button style={{ marginRight: 10 }} disabled={record.orderStatus} type="danger">删除</Button>
                         </Popconfirm> : null}
                 </span>
             )
@@ -201,7 +209,13 @@ export default class BookList extends React.Component<props, state> {
                 </Row>
                 <Row type="flex" justify="center" className="line">
                     <Col span={22}>
-                        <Table style={{ background: '#fff' }} columns={columns} bordered={true} dataSource={this.state.dataSource} />
+                        <Table 
+                            style={{ background: '#fff' }} 
+                            columns={columns} 
+                            bordered={true} 
+                            dataSource={this.state.dataSource} 
+                            rowKey="bookID"
+                        />
                     </Col>
                 </Row>
                 {this.state.visible ?
@@ -211,7 +225,11 @@ export default class BookList extends React.Component<props, state> {
                         footer={null}
                         onCancel={this.handleCancel}
                     >
-                        <WrappedForm formData={this.state.formData} />
+                        <WrappedForm 
+                            formData={this.state.formData} 
+                            getBookList={this.getBookList} 
+                            handleCancel={this.handleCancel}
+                        />
                     </Modal>
                     : null}
             </WrapperBookListCmp>
