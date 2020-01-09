@@ -189,6 +189,7 @@ export default class BookList extends React.Component<props, state> {
                             onConfirm={this.delete.bind(this, record.bookID)}
                             okText="Yes"
                             canelText="No"
+                            disabled={record.orderStatus} 
                         >
                             <Button style={{ marginRight: 10 }} disabled={record.orderStatus} type="danger">删除</Button>
                         </Popconfirm> : null}

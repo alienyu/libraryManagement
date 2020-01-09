@@ -19,16 +19,21 @@ export default class BookList extends React.Component<props, state> {
     constructor(props: props) {
         super(props);
         this.state = {
-            dataSource: require("../../mock/data/user.json"),
+            dataSource: [],
         }
     }
 
     componentWillMount() {
+        this.getUserList()
+    }
+
+    getUserList = () => {
+        let that = this;
         webAjax({
-            method: "get",
+            method: "post",
             url: "/getUserList",
             callback(data) {
-                this.setState({ dataSources: data });
+                that.setState({ dataSource: data.data });
             }
         })
     }
@@ -42,15 +47,15 @@ export default class BookList extends React.Component<props, state> {
     }
 
     delete = (userID) => {
+        let that = this;
         webAjax({
             method: "post",
             url: "/deleteUser",
             data: {userID},
-            callback(data) {
-                let index = this.state.dateSource.findIndex(item => item.userID == userID);
-                this.state.dataSource.splice(index, 1);
-                this.setState({ dataSources: this.state.dataSource });
+            callback() {
+                that.getUserList();
             }
+                
         })
     }
 
@@ -77,8 +82,9 @@ export default class BookList extends React.Component<props, state> {
                             onConfirm={this.delete.bind(this, record.userID)}
                             okText="Yes"
                             canelText="No"
+                            disabled={record.hasOrder} 
                         >
-                            <Button style={{ marginRight: 10 }} type="danger">删除</Button>
+                            <Button style={{ marginRight: 10 }} disabled={record.hasOrder} type="danger">删除</Button>
                         </Popconfirm> : null}
                 </span>
             )
@@ -96,7 +102,13 @@ export default class BookList extends React.Component<props, state> {
                 </Row>
                 <Row type="flex" justify="center" className="line">
                     <Col span={22}>
-                        <Table style={{ background: '#fff' }} columns={columns} bordered={true} dataSource={this.state.dataSource} />
+                        <Table 
+                            style={{ background: '#fff' }} 
+                            columns={columns} 
+                            bordered={true} 
+                            dataSource={this.state.dataSource} 
+                            rowKey="userID"
+                        />
                     </Col>
                 </Row>
             </WrapperUserListCmp>

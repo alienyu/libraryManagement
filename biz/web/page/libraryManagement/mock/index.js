@@ -201,10 +201,42 @@ const dealWithDeleteBook = (req, res) => {
             item.status = 0;
         }
     });
-    
+
     writeFile({filePath, content: oriData});
     res.send(successRes);
 };
+
+const dealWithGetUserList = (req, res) => {
+    let filePath = "./data/user.json";
+    let orderPath = "./data/orderRecords.json";
+    let oriData = readFile(filePath);
+    let orderData = readFile(orderPath);
+    let resData = oriData.filter(item => item.status == 1);
+    resData.map(item => {
+        let userID = item.userID;
+        let curUserOrders = orderData.filter(a => a.userID == userID);
+        var hasOrder = false;
+        curUserOrders.map(b => {
+            if(!b.returnDate) {hasOrder = true}
+        })
+        item.hasOrder = hasOrder;
+    })
+    res.send(Object.assign({}, successRes, {data: resData}));
+};
+
+const dealWithDeleteUser = (req, res) => {
+    let { userID } = req.body;
+    let filePath = "./data/user.json";
+    let oriData = readFile(filePath);
+    oriData.map(item => {
+        if(item.userID == userID) {
+            item.status = 0;
+        }
+    })
+    writeFile({filePath, content: oriData});
+    res.send(successRes);
+}
+
 const proxy = {
     "POST /web/libraryManagement/register": dealWithRegister,
     "POST /web/libraryManagement/login": dealWithLogin,
@@ -215,8 +247,9 @@ const proxy = {
     "POST /web/libraryManagement/getBookList": dealWithGetBookList,
     "POST /web/libraryManagement/orderBook": dealWithOrderBook,
     "POST /web/libraryManagement/submitBook": dealWithSubmitBook,
-    "POST /web/libraryManagement/deleteBook": dealWithDeleteBook
-
+    "POST /web/libraryManagement/deleteBook": dealWithDeleteBook,
+    "POST /web/libraryManagement/getUserList": dealWithGetUserList,
+    "POST /web/libraryManagement/deleteUser": dealWithDeleteUser
 
 }
 
