@@ -1,10 +1,12 @@
 import * as React from "react";
-import { Row, Col, Form, Icon, Input, Button } from 'antd';
+import { Row, Col, Form, Icon, Input, Button, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { observer, inject } from 'mobx-react';
 import { WrapperLoginCmp } from './styled';
 
 declare const webAjax: any;
+declare const sha256: any;
+declare const md5: any;
 
 interface NormalLoginFormProps extends FormComponentProps {
     userStore: any,
@@ -29,10 +31,17 @@ class NormalLoginForm extends React.Component<NormalLoginFormProps, {}> {
             if (!err) {
                 webAjax({
                     url: "/login",
-                    data: values,
+                    data: {
+                        userID: values.userID,
+                        password: sha256(md5(values.password))
+                    },
                     callback(data: any) {
-                        userStore.changeUserInfo(data.data);
-                        history.push("/");
+                        if(data.errNo == 0) {
+                            message.error(data.errMsg);
+                        } else {
+                            userStore.changeUserInfo(data.data);
+                            history.push("/");
+                        }
                     }
                 })
             }

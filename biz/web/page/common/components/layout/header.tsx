@@ -2,10 +2,12 @@ import * as React from 'react'
 import { withRouter } from 'react-router-dom';
 import { observer, inject } from 'mobx-react';
 import { WrapperHeaderCmp } from './styled'
-import { Popconfirm, Row, Col, Button, Form, Input, Modal } from 'antd';
+import { Popconfirm, Row, Col, Button, Form, Input, Modal, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 
 declare const webAjax: any;
+declare const sha256: any;
+declare const md5: any;
 
 type props = {
     userStore?: any,
@@ -19,20 +21,32 @@ type state = {
 
 
 interface PwdFormProps extends FormComponentProps {
-    history?: any
+    history?: any,
+    userStore?: any
 }
 
+@inject('userStore')
+@observer
 class PwdForm extends React.Component<PwdFormProps, {}> {
     handleSubmit = (e) => {
+        let that = this;
         e.preventDefault();
         this.props.form.validateFields((err: any, values: any) => {
             if (!err) {
                 webAjax({
                     url: "/changePwd",
-                    data: values,
+                    data: {
+                        userID: this.props.userStore.userInfo.userID,
+                        oldPwd: sha256(md5(values.oldPwd)),
+                        newPwd: sha256(md5(values.newPwd)),
+                    },
                     callback(data) {
-                        this.props.userStore.clearUserInfo();
-                        this.props.history.push("/login");
+                        if(data.errNo == 200) {
+                            that.props.userStore.clearUserInfo();
+                            location.reload();
+                        } else {
+                            message.error(data.errMsg);
+                        }
                     }
                 })
             }
@@ -47,12 +61,12 @@ class PwdForm extends React.Component<PwdFormProps, {}> {
                 <Form.Item label="原密码">
                     {getFieldDecorator('oldPwd', {
                         rules: [{ required: true, message: '请输入原密码！' }]
-                    })(<Input />)}
+                    })(<Input type="password" />)}
                 </Form.Item>
                 <Form.Item label="新密码">
                     {getFieldDecorator('newPwd', {
                         rules: [{ required: true, message: '请输入原密码！' }]
-                    })(<Input />)}
+                    })(<Input type="password" />)}
                 </Form.Item>
                 <Button type="primary" onClick={this.handleSubmit}>提交</Button>
             </Form>
@@ -63,19 +77,26 @@ class PwdForm extends React.Component<PwdFormProps, {}> {
 export const WrappedPwdForm = Form.create<PwdFormProps>()(PwdForm);
 
 interface InfoFormProps extends FormComponentProps {
-    history?: any
+    userStore?: any,
+    handleCancel: any
 }
 
+@inject('userStore')
+@observer
 class InfoForm extends React.Component<InfoFormProps, {}> {
     handleSubmit = (e) => {
+        let that = this;
         e.preventDefault();
         this.props.form.validateFields((err: any, values: any) => {
             if (!err) {
                 webAjax({
                     url: "/changeInfo",
-                    data: values,
+                    data: Object.assign(values, {userID: this.props.userStore.userInfo.userID}),
                     callback(data) {
-                        this.props.userStore.changeUserInfo({ userName: values.userName });
+                        if(data.errNo == 200) {
+                            that.props.userStore.changeUserInfo({ userName: values.userName });
+                            that.props.handleCancel();
+                        }
                     }
                 })
             }
@@ -148,7 +169,7 @@ class Header extends React.Component<props, state> {
                                     onConfirm={this.logout.bind(this)}
                                     okText="Yes"
                                     cancelText="No"
-                                >{userStore.userInfo.userName}</Popconfirm>
+                                ><span style={{cursor: 'pointer'}}>{userStore.userInfo.userName}</span></Popconfirm>
                                 {userStore.userInfo.userID ?
                                     [<Button style={{marginLeft: 20}} key="info" type="primary" onClick={this.changeInfo}>修改个人信息</Button>,
                                     <Button style={{marginLeft: 20}} key="pwd" type="primary" onClick={this.changePwd}>修改密码</Button>]
@@ -167,7 +188,7 @@ class Header extends React.Component<props, state> {
                     >
                         {this.state.type == "pwd" ?
                             <WrappedPwdForm /> :
-                            <WrappedInfoForm />
+                            <WrappedInfoForm handleCancel={this.handleCancel} />
                         }
                     </Modal>
                     : null}

@@ -19,19 +19,26 @@ export default class Home extends React.Component<props, state> {
     constructor(props: props) {
         super(props);
         this.state = {
-            dataSource: require("../../mock/data/orderRecords.json")
+            dataSource: []
         }
     }
 
-    componentWillMount() {
+    getOrderRecords = () => {
+        let that = this;
         webAjax({
-            method: "get",
+            method: "post",
             url: "/getOrderRecords",
             data: {userID: this.props.userStore.userInfo.userID},
             callback(data) {
-                this.setState({dataSources: data});
+                if(data.errNo == 200) {
+                    that.setState({dataSource: data.data});
+                }
             }
         })
+    }
+
+    componentDidMount() {
+        this.getOrderRecords()
     }
 
     gotoBookList = () => {
@@ -42,16 +49,18 @@ export default class Home extends React.Component<props, state> {
         this.props.history.push("/userList");
     }
 
-    returnBook = (bookID) => {
+    returnBook = (orderID) => {
+        let that = this;
         webAjax({
             method: "post",
             url: "/returnBook",
-            data: {
-                userID: this.props.userStore.userInfo.userID,
-                bookID
-            },
+            data: {orderID},
             callback(data) {
-                message.success("归还成功！", 1500)
+                if(data.errNo == 200) {
+                    message.success("归还成功！", 1.5, () => {
+                        that.getOrderRecords();
+                    })
+                }
             }
         })
     }
@@ -78,7 +87,7 @@ export default class Home extends React.Component<props, state> {
             title: "操作",
             key: "ops",
             render: (text, record) => (
-                <Button type="primary" disabled={record.returnDate} onClick={this.returnBook.bind(this, record.bookID)}>归还</Button>
+                <Button type="primary" disabled={record.returnDate} onClick={this.returnBook.bind(this, record.orderID)}>归还</Button>
             )
         }];
 
@@ -96,7 +105,13 @@ export default class Home extends React.Component<props, state> {
                 </Row>
                 <Row type="flex" justify="center" className="line">
                     <Col span={22}>      
-                        <Table style={{background: '#fff'}} columns={columns} bordered={true} dataSource={this.state.dataSource} />
+                        <Table 
+                            style={{background: '#fff'}} 
+                            columns={columns} 
+                            bordered={true} 
+                            dataSource={this.state.dataSource} 
+                            rowKey="orderID"
+                        />
                     </Col>
                 </Row>
             </WrapperHomeCmp>
