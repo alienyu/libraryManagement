@@ -16,6 +16,14 @@ const routesConf= [{
     path: 'register',
     layout: true
 },{
+    path: 'bookList',
+    layout: true,
+    auth: true
+},{
+    path: 'userList',
+    layout: true,
+    auth: true
+},{
     from: "/",
     to: "/home"
 }];

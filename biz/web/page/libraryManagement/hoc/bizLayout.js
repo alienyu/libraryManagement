@@ -10,7 +10,7 @@ const bizLayout = (WrappedComponent) => {
             <Layout>
                 <Header><WebHeader /></Header>
                 <Layout>
-                    <Content style={{ height: 'calc(100vh - 156px)' }}>
+                    <Content style={{ padding: 20, minHeight: 'calc(100vh - 156px)' }}>
                         <WrappedComponent {...props} />
                     </Content>
                 </Layout>

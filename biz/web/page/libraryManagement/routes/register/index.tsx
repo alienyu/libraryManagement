@@ -1,11 +1,13 @@
 import * as React from "react";
-import { Row, Col, Form, Icon, Input, Button } from 'antd';
+import { Row, Form, Input, Button, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { observer, inject } from 'mobx-react';
 import { WrapperRegisterCmp } from './styled';
 
 declare const webAjax: any;
 declare const intl: any;
+declare const sha256: any;
+declare const md5: any;
 
 interface NormalRegFormProps extends FormComponentProps {
     userStore: any,
@@ -24,10 +26,21 @@ class NormalRegForm extends React.Component<NormalRegFormProps, {}> {
             if (!err) {
                 webAjax({
                     url: "/register",
-                    data: values,
+                    data: {
+                        userID: values.userID,
+                        userName: values.userName,
+                        password: sha256(md5(values.password))
+                    },
                     callback(data: any) {
-                        userStore.changeUserInfo(Object.assign(data, values));
-                        history.push("/");
+                        if(data.errNo == 0) {
+                            message.error(data.errMsg);
+                        } else {
+                            userStore.changeUserInfo({
+                                userID: values.userID,
+                                userName: values.userName
+                            });
+                            history.push("/");
+                        }
                     }
                 })
             }
@@ -61,6 +74,16 @@ class NormalRegForm extends React.Component<NormalRegFormProps, {}> {
                                 <Input
                                     type="password"
                                     placeholder="请输入密码"
+                                />,
+                            )}
+                        </Form.Item>
+                        <Form.Item>
+                            {getFieldDecorator('userName', {
+                                rules: [{ required: true, message: '请输入姓名!' }],
+                            })(
+                                <Input
+                                    type="text"
+                                    placeholder="请输入姓名"
                                 />,
                             )}
                         </Form.Item>

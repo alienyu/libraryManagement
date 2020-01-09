@@ -36,7 +36,7 @@ class Ajax {
                 data: config.data
             }).then((data: any) => {
                 ajaxLoadingStore.changeStatus(false);
-                config.callback.call(this, Object.assign({success: true}, data));
+                config.callback.call(this, Object.assign({success: true}, data.data));
             }).catch((error: any) => {
                 ajaxLoadingStore.changeStatus(false);
                 if(config.handlerErr) {

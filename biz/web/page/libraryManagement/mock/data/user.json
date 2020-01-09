@@ -1,11 +1,18 @@
-[{
-    "userID": "yuyongjian",
-    "userName": "於永健",
-    "pwd": "111111",
-    "type": "super"
-}, {
-    "userID": "test",
-    "userName": "测试账户",
-    "pwd": "111111",
-    "type": "common"
-}]
+[
+    {
+        "userID": "yuyongjian",
+        "userName": "於永健",
+        "pwd": "111111",
+        "type": "super"
+    },
+    {
+        "userID": "test",
+        "userName": "测试账户",
+        "pwd": "111111"
+    },
+    {
+        "userID": "test2",
+        "userName": "dgfd",
+        "password": "65249994cf11a8d417f7113406da386ebdf22bb90f55f950df6c70e8ddfb996e"
+    }
+]

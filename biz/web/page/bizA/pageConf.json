@@ -1,4 +1,0 @@
-{
-    "vendorConf": ["lodash", "moment", "antd"],
-    "antdIconList": ["User", "Lock", "Copy"]
-}
