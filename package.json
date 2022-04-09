@@ -63,7 +63,7 @@
     "mobx": "^5.9.4",
     "mobx-react": "^5.4.3",
     "mocker-api": "^1.11.2",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
     "react-intl-universal": "^2.1.1",
